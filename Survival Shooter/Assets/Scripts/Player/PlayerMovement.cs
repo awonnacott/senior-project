@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour {
-
 	public float speed = 6;
 
 	Vector3 movement;
