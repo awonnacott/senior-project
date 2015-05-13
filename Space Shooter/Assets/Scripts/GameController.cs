@@ -14,12 +14,17 @@ public class GameController : MonoBehaviour {
 	private int score;
 	public Text levelText;
 	private int level;
+	public Text restartText;
+	public Text gameOverText;
+	private bool gameOver = false;
 
 
 	void Start () {
 		StartCoroutine (SpawnWaves ());
 		UpdateScore ();
 		UpdateLevel ();
+		restartText.text = "";
+		gameOverText.text = "";
 	}
 
 	void SpawnHazard () {
@@ -53,13 +58,25 @@ public class GameController : MonoBehaviour {
 	}
 
 	public void LevelUp() {
-		AddScore (level);
+		if (!gameOver) AddScore (level);
 		level++;
 		UpdateLevel ();
 	}
 	
 	void UpdateLevel () {
 		levelText.text = "Level: " + level;
+	}
+
+	public void GameOver() {
+		restartText.text = "Press 'R' for Restart";
+		gameOverText.text = "Game Over";
+		gameOver = true;
+	}
+
+	void Update () {
+		if (gameOver && Input.GetButtonDown ("Restart")) {
+			Application.LoadLevel(Application.loadedLevel);
+		}
 	}
 
 	/*

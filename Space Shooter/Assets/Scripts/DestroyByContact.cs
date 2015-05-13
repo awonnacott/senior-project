@@ -19,6 +19,9 @@ public class DestroyByContact : MonoBehaviour {
 		if (other.tag != "Boundary") {
 			gameController.AddScore (scoreValue);
 			Destroy (other.gameObject);
+			if (tag == "Player") {
+				gameController.GameOver();
+			}
 			Destroy (gameObject);
 			Instantiate (explosion, transform.position, transform.rotation);
 		}
