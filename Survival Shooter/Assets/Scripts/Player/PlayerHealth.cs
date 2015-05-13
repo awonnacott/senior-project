@@ -14,7 +14,7 @@ public class PlayerHealth : MonoBehaviour {
     Animator anim;
     AudioSource playerAudio;
     PlayerMovement playerMovement;
-    //PlayerShooting playerShooting;
+    PlayerShooting playerShooting;
     bool isDead;
     bool damaged;
 
@@ -22,7 +22,7 @@ public class PlayerHealth : MonoBehaviour {
         anim = GetComponent <Animator> ();
         playerAudio = GetComponent <AudioSource> ();
         playerMovement = GetComponent <PlayerMovement> ();
-        //playerShooting = GetComponentInChildren <PlayerShooting> ();
+        playerShooting = GetComponentInChildren <PlayerShooting> ();
         currentHealth = startingHealth;
     }
 
@@ -30,9 +30,7 @@ public class PlayerHealth : MonoBehaviour {
         if (damaged) {
 			damageImage.color = flashColour;
 			damaged = false;
-        } else {
-            damageImage.color = Color.Lerp (damageImage.color, Color.clear, flashSpeed * Time.deltaTime);
-        }
+        } else damageImage.color = Color.Lerp (damageImage.color, Color.clear, flashSpeed * Time.deltaTime);
     }
 
     public void TakeDamage (int amount) {
@@ -40,15 +38,13 @@ public class PlayerHealth : MonoBehaviour {
         currentHealth -= amount;
         healthSlider.value = currentHealth;
         playerAudio.Play ();
-        if(currentHealth <= 0 && !isDead) {
-            Death ();
-        }
+        if (currentHealth <= 0 && !isDead) Death ();
     }
 
     void Death () {
         isDead = true;
 
-        //playerShooting.DisableEffects ();
+        playerShooting.DisableEffects ();
 
         anim.SetTrigger ("Die");
 
@@ -56,10 +52,6 @@ public class PlayerHealth : MonoBehaviour {
         playerAudio.Play ();
 
         playerMovement.enabled = false;
-        //playerShooting.enabled = false;
-    }
-
-    public void RestartLevel () {
-        Application.LoadLevel (Application.loadedLevel);
+        playerShooting.enabled = false;
     }
 }
