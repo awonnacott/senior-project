@@ -25,6 +25,7 @@ public class PlayerController : MonoBehaviour {
 	}
 
 	void Update () {
+		Screen.lockCursor = true;
 		if (Input.GetButtonDown ("Fire1")) { // Easier than Input.GetButton ("Fire1") && Time.time > nextFire
 			Instantiate (shot, shotSpawn.position, Quaternion.identity);
 			gameController.AddScore (-1);
