@@ -24,7 +24,9 @@ public class PlayerMovement : MonoBehaviour {
 	}
 
 	void Move (float h, float v) {
-		movement.Set (h, 0, v);
+		movement = h * Vector3.Cross(Vector3.up, CameraFollow.unitCamToPlayer);
+		movement.x += v * CameraFollow.unitCamToPlayer.x;
+		movement.z += v * CameraFollow.unitCamToPlayer.z;
 
 		movement = movement.normalized * speed * Time.deltaTime;
 
@@ -39,8 +41,6 @@ public class PlayerMovement : MonoBehaviour {
 			playerToMouse.y = 0;
 			Quaternion newRotation = Quaternion.LookRotation (playerToMouse);
 			playerRigidbody.MoveRotation (newRotation);
-		} else {
-			Debug.LogError ("PlayerMovement#Turning()#camRay Raycast failed");
 		}
 	}
 

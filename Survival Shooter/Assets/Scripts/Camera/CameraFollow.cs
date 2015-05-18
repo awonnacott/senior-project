@@ -4,18 +4,31 @@ using System.Collections;
 public class CameraFollow : MonoBehaviour {
 	public Transform target;
 	public float smoothing = 5;
+	public static Vector3 unitCamToPlayer = new Vector3 ();
 
-	Vector3 offset;
+	// Isomorphic camera
+	/*Vector3 offset;
 
 	void Start () {
 		offset = transform.position - target.position;
 	}
+	void FixedUpdate () {
+
+
+		//transform.position = Vector3.Lerp (transform.position, target.position + offset, smoothing * Time.deltaTime);
+	*/
+
+		// Perspective camera
 
 	void FixedUpdate () {
-		transform.position = Vector3.Lerp (transform.position, target.position + offset, smoothing * Time.deltaTime);
-		// Perspective camera?
-		//Vector3 camToPlayer = target.position - transform.position;
-		//Quaternion newRotation = Quaternion.LookRotation (camToPlayer);
-		//transform.rotation = newRotation;
+		unitCamToPlayer = (target.position - transform.position).normalized;
+		Vector3 newAngles = Quaternion.LookRotation (unitCamToPlayer).eulerAngles;
+		if (newAngles.y < 180) {
+			newAngles.y = Mathf.Clamp (newAngles.y, 0, 20);
+		} else if (newAngles.y > 180) {
+			newAngles.y = Mathf.Clamp (newAngles.y, 340, 360);
+		}
+		newAngles.z = 0;
+		transform.rotation = Quaternion.Euler (newAngles);
 	}
 }
