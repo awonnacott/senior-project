@@ -9,6 +9,8 @@ public class GameController : MonoBehaviour {
 	public float spawnWait;
 	public float startWait;
 	public float waveWait;
+	public GameObject[] enemies;
+	private static GameController gameController;
 
 	public Text scoreText;
 	private int score;
@@ -20,6 +22,12 @@ public class GameController : MonoBehaviour {
 
 
 	void Start () {
+		GameObject gameControllerObject = GameObject.FindWithTag ("GameController");
+		if (gameControllerObject == null) {
+			Debug.Log ("Cannot find 'GameController' script");
+		} else {
+			gameController = gameControllerObject.GetComponent<GameController> ();
+		}
 		StartCoroutine (SpawnWaves ());
 		UpdateScore ();
 		UpdateLevel ();
@@ -30,6 +38,11 @@ public class GameController : MonoBehaviour {
 	void SpawnHazard () {
 		Vector3 spawnPosition = new Vector3 (Random.Range (-spawnValues.x, spawnValues.x), spawnValues.y, spawnValues.z);
 		Instantiate (hazards[Mathf.FloorToInt(Random.Range (0, hazards.Length))], spawnPosition, Quaternion.identity);
+	}
+
+	void SpawnEnemy () {
+		Vector3 spawnPosition = new Vector3 (Random.Range (-spawnValues.x, spawnValues.x), spawnValues.y, spawnValues.z);
+		Instantiate (enemies[Mathf.FloorToInt(Random.Range (0, enemies.Length))], spawnPosition, Quaternion.Euler(0, 180, 0));
 	}
 
 	IEnumerator SpawnWaves () {
@@ -43,12 +56,17 @@ public class GameController : MonoBehaviour {
 			hazardCount = hazardCount * 1.25f;
 			spawnWait = Mathf.Clamp (spawnWait * 0.8f, 0.2f, 0.5f);
 			waveWait = Mathf.Clamp (waveWait * 0.9f, spawnWait * 20f, 10f);
+			yield return new WaitForSeconds (waveWait/2);
+			SpawnEnemy ();
 			yield return new WaitForSeconds (waveWait);
 			LevelUp ();
 		}
 	}
 
-	public void AddScore(int deltaScore) {
+	public static void AddScore (int deltaScore) {
+		gameController.AddScore (deltaScore, true);
+	}
+	public void AddScore (int deltaScore, bool ignored) {
 		score += deltaScore;
 		UpdateScore ();
 	}
@@ -57,7 +75,10 @@ public class GameController : MonoBehaviour {
 		scoreText.text = "Score: " + score;
 	}
 
-	public void LevelUp() {
+	public static void LevelUp () {
+		gameController.LevelUp (true);
+	}
+	public void LevelUp (bool ignored) {
 		if (!gameOver) AddScore (level);
 		level++;
 		UpdateLevel ();
@@ -67,7 +88,10 @@ public class GameController : MonoBehaviour {
 		levelText.text = "Level: " + level;
 	}
 
-	public void GameOver() {
+	public static void GameOver () {
+		gameController.GameOver (true);
+	}
+	public void GameOver (bool ignored) {
 		restartText.text = "Press 'R' for Restart";
 		gameOverText.text = "Game Over";
 		gameOver = true;
