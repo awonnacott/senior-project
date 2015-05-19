@@ -1,10 +1,15 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using System.Collections;
 
 public class NetworkController : MonoBehaviour {
 	public static string gameType = "Test Project Please Ignore";
 	public static uint port = 10768;
+
+	public GameObject serversPanel;
+	public Transform contentPanel;
+	public GameObject serverButton;
 
 	public string gameName = "Test Server Please Ignore";
 	public string password = "867-5309";
@@ -29,15 +34,28 @@ public class NetworkController : MonoBehaviour {
 	}
 	private void OnHostsRefreshed () {
 		HostData[] hosts = MasterServer.PollHostList ();
+		PopulateHostList (hosts);
+	}
+	private void PopulateHostList (HostData[] hosts) {
+		serversPanel.SetActive (true);
+		foreach (Transform child in contentPanel)
+			GameObject.Destroy (child.gameObject);
 		Debug.Log (hosts.Length + " games of Game Type " + gameType);
 		foreach (HostData host in hosts) {
 			Debug.Log (host.gameName + " (passwordProtected: " + host.passwordProtected + ")"
-			           + "\n\tplayers: " + host.connectedPlayers + " / " + host.playerLimit
-			           + "\n\tip: " + host.ip + ":" + host.port
-			           + "\n\tuseNAT: " + host.useNat + " GUID: " + host.guid
-			           + "\n\tdescription: " + host.comment);
-		}
-		for (int i = 0; i < hosts.Length; i++) {
+				+ "\n\tplayers: " + host.connectedPlayers + " / " + host.playerLimit
+				+ "\n\tip: " + host.ip + ":" + host.port
+				+ "\n\tuseNAT: " + host.useNat + " GUID: " + host.guid
+				+ "\n\tdescription: " + host.comment);
+			GameObject newButton = Instantiate(serverButton) as GameObject;
+			ServerButtonController serverButtonController = newButton.GetComponent <ServerButtonController> ();
+			serverButtonController.host = host;
+			serverButtonController.gameLabel.text = host.gameName;
+			serverButtonController.playersLabel.text = host.connectedPlayers + " / " + host.playerLimit;
+			serverButtonController.commentLabel.text = host.comment;
+			serverButtonController.keyIcon.SetActive (host.passwordProtected);
+			serverButtonController.networkController = this;
+			newButton.transform.SetParent (contentPanel);
 		}
 	}
 
