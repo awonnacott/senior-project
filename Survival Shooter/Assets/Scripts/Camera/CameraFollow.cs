@@ -3,19 +3,19 @@ using System.Collections;
 
 public class CameraFollow : MonoBehaviour {
 	public Transform target;
-	public float smoothing = 5;
+	
 	public static Vector3 unitCamToPlayer = new Vector3 ();
 
 	// Isomorphic camera
-	/*Vector3 offset;
-
+	/*
+	Vector3 offset;
+	public float smoothing = 5;
 	void Start () {
 		offset = transform.position - target.position;
 	}
 	void FixedUpdate () {
-
-
-		//transform.position = Vector3.Lerp (transform.position, target.position + offset, smoothing * Time.deltaTime);
+		transform.position = Vector3.Lerp (transform.position, target.position + offset, smoothing * Time.deltaTime);
+	}
 	*/
 
 		// Perspective camera
