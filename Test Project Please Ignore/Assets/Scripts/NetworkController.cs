@@ -81,9 +81,6 @@ public class NetworkController : MonoBehaviour {
 			MasterServer.UnregisterHost ();
 		} else if (Network.isClient)
 			Network.Disconnect ();
-		hostButton.interactable = true;
-		clientButton.interactable = true;
-		disconnectButton.interactable = false;
 	}
 
 	public void OnMasterServerEvent (MasterServerEvent msEvent) {
@@ -120,5 +117,26 @@ public class NetworkController : MonoBehaviour {
 		hostButton.interactable = false;
 		clientButton.interactable = false;
 		disconnectButton.interactable = true;
+	}
+
+	void OnDisconnectedFromServer(NetworkDisconnection info) {
+		if (Network.isServer)
+			Debug.Log("Local server connection disconnected");
+		else if (info == NetworkDisconnection.LostConnection)
+			Debug.Log("Lost connection to the server");
+		else
+			Debug.Log("Successfully diconnected from the server");
+		hostButton.interactable = true;
+		clientButton.interactable = true;
+		disconnectButton.interactable = false;
+		GameObject[] playerObjects = GameObject.FindGameObjectsWithTag ("Player");
+		foreach (GameObject playerObject in playerObjects)
+			Destroy(playerObject);
+	}
+
+	void OnPlayerDisconnected(NetworkPlayer player) {
+		Debug.Log("Clean up after player " + player);
+		Network.RemoveRPCs(player);
+		Network.DestroyPlayerObjects(player);
 	}
 }
