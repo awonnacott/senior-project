@@ -7,6 +7,12 @@ public class NetworkController : MonoBehaviour {
 	public static string gameType = "Test Project Please Ignore";
 	public static uint port = 10768;
 
+	public GameObject player;
+
+	public Button hostButton;
+	public Button clientButton;
+	public Button disconnectButton;
+
 	public GameObject serversPanel;
 	public Transform contentPanel;
 	public GameObject serverButton;
@@ -23,14 +29,19 @@ public class NetworkController : MonoBehaviour {
 	}
 	public void OnServerInitialized () {
 		Debug.Log ("Server Initialized");
+		SpawnPlayer ();
 		Debug.Log ("Registering Server with Master Server");
 		MasterServer.RegisterHost(gameType, gameName, comment);
 	}
 	
 	public void ClientButtonClick () {
-		Debug.Log ("Refreshing Hosts");
-		MasterServer.ClearHostList ();
-		MasterServer.RequestHostList (gameType);
+		if (serversPanel.activeSelf)
+			serversPanel.SetActive (false);
+		else {
+			Debug.Log ("Refreshing Hosts");
+			MasterServer.ClearHostList ();
+			MasterServer.RequestHostList (gameType);
+		}
 	}
 	private void OnHostsRefreshed () {
 		HostData[] hosts = MasterServer.PollHostList ();
@@ -40,23 +51,39 @@ public class NetworkController : MonoBehaviour {
 		serversPanel.SetActive (true);
 		foreach (Transform child in contentPanel)
 			GameObject.Destroy (child.gameObject);
-		Debug.Log (hosts.Length + " games of Game Type " + gameType);
+		//Debug.Log (hosts.Length + " games of Game Type " + gameType);
 		foreach (HostData host in hosts) {
-			Debug.Log (host.gameName + " (passwordProtected: " + host.passwordProtected + ")"
+			/*Debug.Log (host.gameName + " (passwordProtected: " + host.passwordProtected + ")"
 				+ "\n\tplayers: " + host.connectedPlayers + " / " + host.playerLimit
 				+ "\n\tip: " + host.ip + ":" + host.port
 				+ "\n\tuseNAT: " + host.useNat + " GUID: " + host.guid
 				+ "\n\tdescription: " + host.comment);
+				*/
 			GameObject newButton = Instantiate(serverButton) as GameObject;
 			ServerButtonController serverButtonController = newButton.GetComponent <ServerButtonController> ();
-			serverButtonController.host = host;
-			serverButtonController.gameLabel.text = host.gameName;
-			serverButtonController.playersLabel.text = host.connectedPlayers + " / " + host.playerLimit;
-			serverButtonController.commentLabel.text = host.comment;
-			serverButtonController.keyIcon.SetActive (host.passwordProtected);
-			serverButtonController.networkController = this;
+			serverButtonController.AssignHost(this, host);
 			newButton.transform.SetParent (contentPanel);
 		}
+	}
+	public void ConnectToHost (HostData host) {
+		Debug.Log ("Connecting to " + host.gameName);
+		NetworkConnectionError nce = Network.Connect (host, password);
+		Debug.Log (nce);
+	}
+	public void OnConnectedToServer () {
+		Debug.Log ("Connected");
+		SpawnPlayer ();
+	}
+
+	public void DisconnectButtonClick () {
+		if (Network.isServer) {
+			Network.Disconnect ();
+			MasterServer.UnregisterHost ();
+		} else if (Network.isClient)
+			Network.Disconnect ();
+		hostButton.interactable = true;
+		clientButton.interactable = true;
+		disconnectButton.interactable = false;
 	}
 
 	public void OnMasterServerEvent (MasterServerEvent msEvent) {
@@ -84,5 +111,14 @@ public class NetworkController : MonoBehaviour {
 	}
 	public void OnFailedToConnectToMasterServer (NetworkConnectionError info) {
 		Debug.Log ("Master Server Connection Failed: " + info);
+	}
+
+	public void SpawnPlayer () {
+		Vector3 spawnPosition = new Vector3 (Random.value * 10 - 5, 0, Random.value * 10 - 5);
+		Network.Instantiate (player, spawnPosition, Quaternion.identity, 0); 
+		serversPanel.SetActive (false);
+		hostButton.interactable = false;
+		clientButton.interactable = false;
+		disconnectButton.interactable = true;
 	}
 }
