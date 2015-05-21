@@ -5,12 +5,17 @@ public class CameraController : MonoBehaviour {
 	Transform target;
 	public static Vector3 camToPlayer = Vector3.zero;
 	public static Vector3 flatUnitCamToPlayer = Vector3.zero;
+	public static CameraController mainCameraCC;
+
+	void Start () {
+		mainCameraCC = GameObject.FindWithTag ("MainCamera").GetComponent <CameraController> ();
+	}
 
 	public void SetTarget (Transform newTarget) {
 		target = newTarget;
 	}
 
-	void Update () {
+	void LateUpdate () {
 		if (target != null)
 			UpdateRotation ();
 	}

@@ -2,8 +2,8 @@
 using System.Collections;
 
 public class SphereController : MonoBehaviour {
-	Renderer renderer;
-	NetworkView networkView;
+	new Renderer renderer;
+	new NetworkView networkView;
 	void Start () {
 		renderer = GetComponent <Renderer> ();
 		networkView = GetComponent <NetworkView> ();
@@ -12,6 +12,11 @@ public class SphereController : MonoBehaviour {
 	public void OnTriggerEnter () {
 		Debug.Log ("Hello");
 		networkView.RPC ("SetColor", RPCMode.AllBuffered, new Vector3 (1, 0, 0));
+	}
+
+	public void OnTriggerExit () {
+		Debug.Log ("Goodbye");
+		networkView.RPC ("SetColor", RPCMode.AllBuffered, new Vector3 (1, 1, 1));
 	}
 
 	[RPC]
