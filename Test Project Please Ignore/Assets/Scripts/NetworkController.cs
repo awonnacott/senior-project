@@ -19,7 +19,7 @@ public class NetworkController : MonoBehaviour {
 	public GameObject serversPanel;
 	public Transform contentPanel;
 	public GameObject serverButton;
-	
+
 	public void HostButtonClick () {
 		Debug.Log ("Starting Server");
 		Network.incomingPassword = password;
@@ -33,6 +33,7 @@ public class NetworkController : MonoBehaviour {
 		hostButton.interactable = false;
 		clientButton.interactable = false;
 		disconnectButton.interactable = true;
+		MouseController.lockCursor = true;
 		Debug.Log ("Registering Server with Master Server");
 		MasterServer.RegisterHost(gameType, gameName, comment);
 	}
@@ -79,6 +80,7 @@ public class NetworkController : MonoBehaviour {
 		hostButton.interactable = false;
 		clientButton.interactable = false;
 		disconnectButton.interactable = true;
+		MouseController.lockCursor = true;
 	}
 	public void OnPlayerConnected (NetworkPlayer player) {
 		SpawnPlayer (player);
@@ -135,6 +137,7 @@ public class NetworkController : MonoBehaviour {
 		hostButton.interactable = true;
 		clientButton.interactable = true;
 		disconnectButton.interactable = false;
+		CameraController.mainCameraCC.SetTarget (null);
 		GameObject[] playerObjects = GameObject.FindGameObjectsWithTag ("Player");
 		foreach (GameObject playerObject in playerObjects)
 			Destroy(playerObject);
@@ -146,6 +149,6 @@ public class NetworkController : MonoBehaviour {
 		Network.DestroyPlayerObjects(player);
 		foreach (GameObject playerObject in GameObject.FindGameObjectsWithTag ("Player"))
 			if (playerObject.GetComponent <PlayerMovement> ().owner == player)
-				Destroy (playerObject);
+				Network.Destroy (playerObject);
 	}
 }
