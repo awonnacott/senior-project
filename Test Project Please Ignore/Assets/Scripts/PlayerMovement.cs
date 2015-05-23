@@ -19,6 +19,15 @@ public class PlayerMovement : MonoBehaviour {
 
 	}
 
+	public void RPCDestroy () {
+		networkView.RPC ("Destroy", RPCMode.AllBuffered);
+	}
+
+	[RPC]
+	void Destroy () {
+		Destroy (gameObject);
+	}
+
 	[RPC]
 	void SetOwner (NetworkPlayer player) {
 		owner = player;

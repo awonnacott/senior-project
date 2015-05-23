@@ -33,9 +33,38 @@ public class NetworkController : MonoBehaviour {
 		hostButton.interactable = false;
 		clientButton.interactable = false;
 		disconnectButton.interactable = true;
+		foreach (GameObject reactorObject in GameObject.FindGameObjectsWithTag ("Reactor"))
+			foreach (ReactorController reactorComponent in reactorObject.GetComponents <ReactorController> ())
+				reactorComponent.Reset ();
 		MouseController.lockCursor = true;
 		Debug.Log ("Registering Server with Master Server");
 		MasterServer.RegisterHost(gameType, gameName, comment);
+	}
+	public void OnMasterServerEvent (MasterServerEvent msEvent) {
+		switch (msEvent) {
+		case MasterServerEvent.HostListReceived:
+			Debug.Log ("Hosts Refreshed");
+			OnHostsRefreshed ();
+			break;
+		case MasterServerEvent.RegistrationFailedGameName:
+			Debug.Log ("Master Server Registration Failed: game name");
+			break;
+		case MasterServerEvent.RegistrationFailedGameType:
+			Debug.Log ("Master Server Registration Failed: game type");
+			break;
+		case MasterServerEvent.RegistrationFailedNoServer:
+			Debug.Log ("Master Server Registration Failed: no server");
+			break;
+		case MasterServerEvent.RegistrationSucceeded:
+			Debug.Log ("Master Server Registration Success");
+			break;
+		default:
+			Debug.Log ("Unknown Master Server Event: " + msEvent);
+			break;
+		}
+	}
+	public void OnFailedToConnectToMasterServer (NetworkConnectionError info) {
+		Debug.Log ("Master Server Connection Failed: " + info);
 	}
 	
 	public void ClientButtonClick () {
@@ -80,16 +109,20 @@ public class NetworkController : MonoBehaviour {
 		hostButton.interactable = false;
 		clientButton.interactable = false;
 		disconnectButton.interactable = true;
+		foreach (GameObject reactorObject in GameObject.FindGameObjectsWithTag ("Reactor"))
+			foreach (ReactorController reactorComponent in reactorObject.GetComponents <ReactorController> ())
+				reactorComponent.Reset ();
 		MouseController.lockCursor = true;
+
 	}
 	public void OnPlayerConnected (NetworkPlayer player) {
 		SpawnPlayer (player);
 	}
-
 	public void SpawnPlayer (NetworkPlayer player) {
 		Vector3 spawnPosition = new Vector3 (Random.value * 10 - 5, 0, Random.value * 10 - 5);
 		GameObject newPlayerObject = (GameObject) Network.Instantiate (playerObject, spawnPosition, Quaternion.identity, 0);
 		newPlayerObject.GetComponent <NetworkView> ().RPC("SetOwner", RPCMode.AllBuffered, player);
+		newPlayerObject.layer = LayerMask.NameToLayer ("Ignore Raycast");
 	}
 
 	public void DisconnectButtonClick () {
@@ -99,34 +132,6 @@ public class NetworkController : MonoBehaviour {
 		} else if (Network.isClient)
 			Network.Disconnect ();
 	}
-
-	public void OnMasterServerEvent (MasterServerEvent msEvent) {
-		switch (msEvent) {
-		case MasterServerEvent.HostListReceived:
-			Debug.Log ("Hosts Refreshed");
-			OnHostsRefreshed ();
-			break;
-		case MasterServerEvent.RegistrationFailedGameName:
-			Debug.Log ("Master Server Registration Failed: game name");
-			break;
-		case MasterServerEvent.RegistrationFailedGameType:
-			Debug.Log ("Master Server Registration Failed: game type");
-			break;
-		case MasterServerEvent.RegistrationFailedNoServer:
-			Debug.Log ("Master Server Registration Failed: no server");
-			break;
-		case MasterServerEvent.RegistrationSucceeded:
-			Debug.Log ("Master Server Registration Success");
-			break;
-		default:
-			Debug.Log ("Unknown Master Server Event: " + msEvent);
-			break;
-		}
-	}
-	public void OnFailedToConnectToMasterServer (NetworkConnectionError info) {
-		Debug.Log ("Master Server Connection Failed: " + info);
-	}
-	
 	void OnDisconnectedFromServer(NetworkDisconnection info) {
 		if (Network.isServer)
 			Debug.Log("Local server connection disconnected");
@@ -141,14 +146,19 @@ public class NetworkController : MonoBehaviour {
 		GameObject[] playerObjects = GameObject.FindGameObjectsWithTag ("Player");
 		foreach (GameObject playerObject in playerObjects)
 			Destroy(playerObject);
+		foreach (GameObject reactorObject in GameObject.FindGameObjectsWithTag ("Reactor"))
+			foreach (ReactorController reactorComponent in reactorObject.GetComponents <ReactorController> ())
+				reactorComponent.Reset ();
 	}
-
 	void OnPlayerDisconnected(NetworkPlayer player) {
 		Debug.Log("Clean up after player " + player);
 		Network.RemoveRPCs(player);
 		Network.DestroyPlayerObjects(player);
 		foreach (GameObject playerObject in GameObject.FindGameObjectsWithTag ("Player"))
 			if (playerObject.GetComponent <PlayerMovement> ().owner == player)
-				Network.Destroy (playerObject);
+				playerObject.GetComponent <PlayerMovement> ().RPCDestroy ();
+		foreach (GameObject reactorObject in GameObject.FindGameObjectsWithTag ("Reactor"))
+			foreach (ReactorController reactorComponent in reactorObject.GetComponents <ReactorController> ())
+				reactorComponent.Reset ();
 	}
 }
