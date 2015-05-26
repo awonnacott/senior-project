@@ -113,7 +113,6 @@ public class NetworkController : MonoBehaviour {
 		Vector3 spawnPosition = new Vector3 (Random.value * 10 - 5, 0, Random.value * 10 - 5);
 		GameObject newPlayerObject = (GameObject) Network.Instantiate (playerObject, spawnPosition, Quaternion.identity, 0);
 		newPlayerObject.GetComponent <NetworkView> ().RPC("SetOwner", RPCMode.AllBuffered, player);
-		newPlayerObject.layer = LayerMask.NameToLayer ("Ignore Raycast");
 	}
 
 	public void DisconnectButtonClick () {

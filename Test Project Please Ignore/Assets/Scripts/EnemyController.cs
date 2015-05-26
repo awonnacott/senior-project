@@ -1,16 +1,18 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class EnemyController : MonoBehaviour {
 	public GameObject[] players = new GameObject[0];
+	public List <NetworkPlayer> newPlayers = new List <NetworkPlayer> ();
 	public Transform target;
 	new private NetworkView networkView;
 	bool updatePlayerNow = false;
 	//PlayerHealth playerHealth;
 	//EnemyHealth enemyHealth;
 	NavMeshAgent nav;
-	
-	public float validationPeriod = 5;
+
+	public float validationPeriod = 1;
 
 	void Start () {
 		networkView = GetComponent <NetworkView> ();
@@ -33,9 +35,10 @@ public class EnemyController : MonoBehaviour {
 		updatePlayerNow = true;
 	}
 	void OnPlayerConnected (NetworkPlayer newPlayer) {
-		networkView.RPC ("ClientReceivePosition", newPlayer, transform.position);
-		networkView.RPC ("ClientReceiveTarget", newPlayer, nav.destination);
 		updatePlayerNow = true;
+		if (Network.isServer) {
+			newPlayers.Add (newPlayer);
+		}
 	}
 	void OnPlayerDisconnected () {
 		updatePlayerNow = true;
@@ -50,6 +53,11 @@ public class EnemyController : MonoBehaviour {
 
 	void Update () {
 		if (Network.isServer) {
+			foreach (NetworkPlayer newPlayer in newPlayers) {
+				networkView.RPC ("ClientReceivePosition", newPlayer, transform.position);
+				networkView.RPC ("ClientReceiveTarget", newPlayer, nav.destination);
+			}
+			newPlayers.Clear ();
 			if (updatePlayerNow)
 				players = GameObject.FindGameObjectsWithTag ("Player");
 			foreach (GameObject player in players)
@@ -68,7 +76,7 @@ public class EnemyController : MonoBehaviour {
 		nav.SetDestination (targetPosition);
 	}
 	[RPC]
-	void ClientReceivePosition (Vector3 newPosition) {
-		transform.position = newPosition;
+	void ClientReceivePosition (Vector3 position) {
+		nav.Warp (position);
 	}
 }

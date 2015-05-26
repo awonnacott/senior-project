@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 public class PlayerMovement : MonoBehaviour {
 	private CharacterController playerCC;
+	public List <NetworkPlayer> newPlayers = new List <NetworkPlayer> ();
 	public float speed;
 	public float gravity;
 	public float jumpSpeed;
@@ -11,11 +13,15 @@ public class PlayerMovement : MonoBehaviour {
 	Vector3 moveDirection = Vector3.zero;
 	Vector3 groundedMoveDirection = Vector3.zero;
 
+	bool justConnected = true;
+	Vector3 oldPosition = new Vector3 ();
+
 	public NetworkPlayer owner;
 
-	public float validationPeriod = 5;
+	public float validationPeriod = 1;
 
 	void Start () {
+		oldPosition = transform.position;
 		networkView = GetComponent <NetworkView> ();
 		playerCC = GetComponent <CharacterController> ();
 		if (Network.isServer)
@@ -77,10 +83,15 @@ public class PlayerMovement : MonoBehaviour {
 			playerCC.Move (moveDirection * Time.deltaTime);
 			networkView.RPC ("ClientReceiveMotion", RPCMode.Others, moveDirection * Time.deltaTime);
 		} else if (Network.player == owner)
-			networkView.RPC ("UpdateClientMotion", RPCMode.Server, new Vector3 (Input.GetAxis ("Horizontal"), Input.GetButton ("Jump") ? 1 : 0, Input.GetAxis ("Vertical")), CameraController.flatUnitCamToPlayer);
+			networkView.RPC ("UpdateClientMotion", RPCMode.Server, new Vector3 (Input.GetAxis ("Horizontal"), Input.GetButton ("Jump") ? 1 : 0, Input.GetAxis ("Vertical")), CameraController.flatUnitCamToPlayer, Time.deltaTime);
+		if (Network.isServer && newPlayers.Count > 0) {
+			foreach (NetworkPlayer newPlayer in newPlayers)
+				networkView.RPC ("ClientReceivePosition", newPlayer, transform.position);
+			newPlayers.Clear ();
+		}
 	}
 	[RPC]
-	public void UpdateClientMotion (Vector3 newMotion, Vector3 flatUnitCamToPlayer) {
+	public void UpdateClientMotion (Vector3 newMotion, Vector3 flatUnitCamToPlayer, float deltaTime) {
 		if (playerCC.isGrounded) {
 			moveDirection = Vector3.zero;
 			if (newMotion.x != 0)
@@ -106,9 +117,9 @@ public class PlayerMovement : MonoBehaviour {
 			moveDirection.x = (groundedMoveDirection.x + newMoveDirection.x) / 2f;
 			moveDirection.z = (groundedMoveDirection.z + newMoveDirection.z) / 2f;
 		}
-		moveDirection.y -= gravity * Time.deltaTime;
-		playerCC.Move (moveDirection * Time.deltaTime);
-		networkView.RPC ("ClientReceiveMotion", RPCMode.Others, moveDirection * Time.deltaTime);
+		moveDirection.y -= gravity * deltaTime;
+		playerCC.Move (moveDirection * deltaTime);
+		networkView.RPC ("ClientReceiveMotion", RPCMode.Others, moveDirection * deltaTime);
 	}
 	[RPC]
 	void ClientReceiveMotion (Vector3 moveDirection) {
@@ -123,15 +134,29 @@ public class PlayerMovement : MonoBehaviour {
 	void OnPlayerConnected (NetworkPlayer player) {
 		Debug.Log ("Am " + Network.player + " seeing " + player);
 		if (Network.isServer)
-			networkView.RPC ("ClientReceivePosition", player, transform.position);
+			newPlayers.Add (player);
+	}
+	void OnConnectedToServer () {
+		justConnected = true;
+		oldPosition = transform.position;
 	}
 	[RPC]
 	void ClientReceivePosition (Vector3 position) {
-		try {
-			playerCC.Move (position - transform.position);
-		} catch (NullReferenceException) {
-			playerCC = GetComponent <CharacterController> ();
-			playerCC.Move (position - transform.position);
-		}
+		if (justConnected) {
+			transform.position = position;
+			try {
+				if (playerCC.isGrounded)
+					justConnected = false;
+				else
+					transform.position = oldPosition;
+			} catch (NullReferenceException) {
+				playerCC = GetComponent <CharacterController> ();
+				if (playerCC.isGrounded)
+					justConnected = false;
+				else
+					transform.position = oldPosition;
+			}
+		} else
+			transform.position = position;
 	}
 }
