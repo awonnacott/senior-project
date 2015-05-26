@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class SphereController : MonoBehaviour, ReactorController {
+public class SphereController : MonoBehaviour {
 	new Renderer renderer;
 	new NetworkView networkView;
 	bool wasReset = false;
@@ -10,18 +10,18 @@ public class SphereController : MonoBehaviour, ReactorController {
 		networkView = GetComponent <NetworkView> ();
 	}
 
-	public void OnTriggerEnter () {
+	void OnTriggerEnter () {
 		SetColor(new Vector3 (1, 0, 0));
 	}
 
-	public void OnTriggerStay () {
+	void OnTriggerStay () {
 		if (wasReset) {
 			SetColor (new Vector3 (1, 0, 0));
 			wasReset = false;
 		}
 	}
 
-	public void OnTriggerExit () {
+	void OnTriggerExit () {
 		SetColor (new Vector3 (1, 1, 1));
 		wasReset = true;
 	}
@@ -30,10 +30,21 @@ public class SphereController : MonoBehaviour, ReactorController {
 	public void SetColor (Vector3 newColorVector) {
 		renderer.material.color = new Color(newColorVector.x, newColorVector.y, newColorVector.z);
 	}
-	
 
-	
-	public void Reset () {
+	void OnServerInitialized() {
+		AllResetColor ();
+	}
+	void OnPlayerConnected() {
+		AllResetColor ();
+	}
+	void OnPlayerDisconnected () {
+		AllResetColor ();
+	}
+	void OnDisconnectedFromServer () {
+		ResetColor ();
+	}
+
+	void AllResetColor () {
 		SetColor (new Vector3 (1, 1, 1));
 		wasReset = true;
 		networkView.RPC ("ResetColor", RPCMode.AllBuffered);

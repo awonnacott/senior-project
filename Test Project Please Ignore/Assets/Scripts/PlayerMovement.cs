@@ -13,10 +13,20 @@ public class PlayerMovement : MonoBehaviour {
 
 	public NetworkPlayer owner;
 
+	public float validationPeriod = 5;
+
 	void Start () {
 		networkView = GetComponent <NetworkView> ();
 		playerCC = GetComponent <CharacterController> ();
+		if (Network.isServer)
+			StartCoroutine (ValidatePosition ());
+	}
 
+	IEnumerator ValidatePosition () {
+		while (true) {
+			networkView.RPC ("ClientReceivePosition", RPCMode.Others, transform.position);
+			yield return new WaitForSeconds (validationPeriod);
+		}
 	}
 
 	public void RPCDestroy () {
@@ -101,7 +111,7 @@ public class PlayerMovement : MonoBehaviour {
 		networkView.RPC ("ClientReceiveMotion", RPCMode.Others, moveDirection * Time.deltaTime);
 	}
 	[RPC]
-	public void ClientReceiveMotion (Vector3 moveDirection) {
+	void ClientReceiveMotion (Vector3 moveDirection) {
 		try {
 			playerCC.Move (moveDirection);
 		} catch (NullReferenceException) {
@@ -110,13 +120,13 @@ public class PlayerMovement : MonoBehaviour {
 		}
 	}
 
-	public void OnPlayerConnected (NetworkPlayer player) {
+	void OnPlayerConnected (NetworkPlayer player) {
 		Debug.Log ("Am " + Network.player + " seeing " + player);
 		if (Network.isServer)
 			networkView.RPC ("ClientReceivePosition", player, transform.position);
 	}
 	[RPC]
-	public void ClientReceivePosition (Vector3 position) {
+	void ClientReceivePosition (Vector3 position) {
 		try {
 			playerCC.Move (position - transform.position);
 		} catch (NullReferenceException) {

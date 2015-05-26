@@ -47,10 +47,10 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Scripts\CameraController.cs" />
+     <Compile Include="Assets\Scripts\EnemyController.cs" />
      <Compile Include="Assets\Scripts\MouseController.cs" />
      <Compile Include="Assets\Scripts\NetworkController.cs" />
      <Compile Include="Assets\Scripts\PlayerMovement.cs" />
-     <Compile Include="Assets\Scripts\ReactorController.cs" />
      <Compile Include="Assets\Scripts\ServerButtonController.cs" />
      <Compile Include="Assets\Scripts\SphereController.cs" />
  <Reference Include="UnityEngine.UI">

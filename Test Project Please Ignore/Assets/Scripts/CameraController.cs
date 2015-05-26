@@ -53,14 +53,16 @@ public class CameraController : MonoBehaviour {
 		transform.localRotation = originalRotation * yQuaternion;
 		transform.localPosition = yQuaternion * desiredLocalPosition;
 
-		RaycastHit hit;
-		if (Physics.Raycast (transform.parent.position, transform.position - transform.parent.position, out hit, desiredDistance))
-			transform.localPosition = transform.localPosition.normalized * Mathf.Clamp (hit.distance, 2, desiredDistance);
-
 		rotationX += Input.GetAxis ("Mouse X") * sensitivityX;
 		rotationX = rotationX % maximumX;
 		Quaternion xQuaternion = Quaternion.AngleAxis (rotationX, Vector3.up);
 		transform.parent.localRotation = parentOriginalRotation * xQuaternion;
+
+		RaycastHit hit;
+		if (Physics.Raycast (transform.parent.position, transform.position - transform.parent.position, out hit, desiredDistance))
+			transform.localPosition = transform.localPosition.normalized * Mathf.Clamp (hit.distance, 2, desiredDistance);
+
+
 
 		camToPlayer = (target.position - transform.position);
 		flatUnitCamToPlayer = new Vector3 (camToPlayer.x, 0, camToPlayer.z).normalized;

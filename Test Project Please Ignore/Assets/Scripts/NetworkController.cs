@@ -20,27 +20,23 @@ public class NetworkController : MonoBehaviour {
 	public Transform contentPanel;
 	public GameObject serverButton;
 
-	public void HostButtonClick () {
+	void HostButtonClick () {
 		Debug.Log ("Starting Server");
 		Network.incomingPassword = password;
 		bool useNat = !Network.HavePublicAddress();
 		Network.InitializeServer(32, (int)port, useNat);
 	}
-	public void OnServerInitialized () {
+	void OnServerInitialized () {
 		Debug.Log ("Server Initialized");
 		SpawnPlayer (Network.player);
 		serversPanel.SetActive (false);
 		hostButton.interactable = false;
 		clientButton.interactable = false;
 		disconnectButton.interactable = true;
-		foreach (GameObject reactorObject in GameObject.FindGameObjectsWithTag ("Reactor"))
-			foreach (ReactorController reactorComponent in reactorObject.GetComponents <ReactorController> ())
-				reactorComponent.Reset ();
-		MouseController.lockCursor = true;
 		Debug.Log ("Registering Server with Master Server");
 		MasterServer.RegisterHost(gameType, gameName, comment);
 	}
-	public void OnMasterServerEvent (MasterServerEvent msEvent) {
+	void OnMasterServerEvent (MasterServerEvent msEvent) {
 		switch (msEvent) {
 		case MasterServerEvent.HostListReceived:
 			Debug.Log ("Hosts Refreshed");
@@ -63,11 +59,11 @@ public class NetworkController : MonoBehaviour {
 			break;
 		}
 	}
-	public void OnFailedToConnectToMasterServer (NetworkConnectionError info) {
+	void OnFailedToConnectToMasterServer (NetworkConnectionError info) {
 		Debug.Log ("Master Server Connection Failed: " + info);
 	}
 	
-	public void ClientButtonClick () {
+	void ClientButtonClick () {
 		if (serversPanel.activeSelf)
 			serversPanel.SetActive (false);
 		else {
@@ -76,11 +72,11 @@ public class NetworkController : MonoBehaviour {
 			MasterServer.RequestHostList (gameType);
 		}
 	}
-	private void OnHostsRefreshed () {
+	void OnHostsRefreshed () {
 		HostData[] hosts = MasterServer.PollHostList ();
 		PopulateHostList (hosts);
 	}
-	private void PopulateHostList (HostData[] hosts) {
+	void PopulateHostList (HostData[] hosts) {
 		serversPanel.SetActive (true);
 		foreach (Transform child in contentPanel)
 			GameObject.Destroy (child.gameObject);
@@ -103,22 +99,17 @@ public class NetworkController : MonoBehaviour {
 		NetworkConnectionError nce = Network.Connect (host, password);
 		Debug.Log (nce);
 	}
-	public void OnConnectedToServer () {
+	void OnConnectedToServer () {
 		Debug.Log ("Connected");
 		serversPanel.SetActive (false);
 		hostButton.interactable = false;
 		clientButton.interactable = false;
 		disconnectButton.interactable = true;
-		foreach (GameObject reactorObject in GameObject.FindGameObjectsWithTag ("Reactor"))
-			foreach (ReactorController reactorComponent in reactorObject.GetComponents <ReactorController> ())
-				reactorComponent.Reset ();
-		MouseController.lockCursor = true;
-
 	}
-	public void OnPlayerConnected (NetworkPlayer player) {
+	void OnPlayerConnected (NetworkPlayer player) {
 		SpawnPlayer (player);
 	}
-	public void SpawnPlayer (NetworkPlayer player) {
+	void SpawnPlayer (NetworkPlayer player) {
 		Vector3 spawnPosition = new Vector3 (Random.value * 10 - 5, 0, Random.value * 10 - 5);
 		GameObject newPlayerObject = (GameObject) Network.Instantiate (playerObject, spawnPosition, Quaternion.identity, 0);
 		newPlayerObject.GetComponent <NetworkView> ().RPC("SetOwner", RPCMode.AllBuffered, player);
@@ -146,9 +137,6 @@ public class NetworkController : MonoBehaviour {
 		GameObject[] playerObjects = GameObject.FindGameObjectsWithTag ("Player");
 		foreach (GameObject playerObject in playerObjects)
 			Destroy(playerObject);
-		foreach (GameObject reactorObject in GameObject.FindGameObjectsWithTag ("Reactor"))
-			foreach (ReactorController reactorComponent in reactorObject.GetComponents <ReactorController> ())
-				reactorComponent.Reset ();
 	}
 	void OnPlayerDisconnected(NetworkPlayer player) {
 		Debug.Log("Clean up after player " + player);
@@ -157,8 +145,5 @@ public class NetworkController : MonoBehaviour {
 		foreach (GameObject playerObject in GameObject.FindGameObjectsWithTag ("Player"))
 			if (playerObject.GetComponent <PlayerMovement> ().owner == player)
 				playerObject.GetComponent <PlayerMovement> ().RPCDestroy ();
-		foreach (GameObject reactorObject in GameObject.FindGameObjectsWithTag ("Reactor"))
-			foreach (ReactorController reactorComponent in reactorObject.GetComponents <ReactorController> ())
-				reactorComponent.Reset ();
 	}
 }
