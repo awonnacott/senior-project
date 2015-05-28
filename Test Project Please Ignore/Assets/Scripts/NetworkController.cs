@@ -97,7 +97,8 @@ public class NetworkController : MonoBehaviour {
 	public void ConnectToHost (HostData host) {
 		Debug.Log ("Connecting to " + host.gameName);
 		NetworkConnectionError nce = Network.Connect (host, password);
-		Debug.Log (nce);
+		if (nce.ToString () != "NoError")
+			Debug.Log (nce);
 	}
 	void OnConnectedToServer () {
 		Debug.Log ("Connected");

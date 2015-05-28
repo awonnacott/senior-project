@@ -159,4 +159,16 @@ public class PlayerMovement : MonoBehaviour {
 		} else
 			transform.position = position;
 	}
+
+	[RPC]
+	public void GetButton (string buttonName, NetworkViewID callerID, string callback, NetworkMessageInfo info) {
+		if (Input.GetButton (buttonName))
+			NetworkView.Find(callerID).RPC (callback, info.sender);
+	}
+	[RPC]
+	public void GetButtonDown (string buttonName, NetworkViewID callerID, string callback, NetworkMessageInfo info) {
+		if (Input.GetButtonDown (buttonName))
+			NetworkView.Find(callerID).RPC (callback, info.sender);
+	}
+
 }

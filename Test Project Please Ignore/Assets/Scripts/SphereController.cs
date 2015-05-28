@@ -11,18 +11,18 @@ public class SphereController : MonoBehaviour {
 	}
 
 	void OnTriggerEnter () {
-		SetColor(new Vector3 (1, 0, 0));
+		SetColor (Vector3.right);
 	}
 
 	void OnTriggerStay () {
 		if (wasReset) {
-			SetColor (new Vector3 (1, 0, 0));
+			SetColor (Vector3.right);
 			wasReset = false;
 		}
 	}
 
 	void OnTriggerExit () {
-		SetColor (new Vector3 (1, 1, 1));
+		SetColor (Vector3.one);
 		wasReset = true;
 	}
 
@@ -45,13 +45,25 @@ public class SphereController : MonoBehaviour {
 	}
 
 	void AllResetColor () {
-		SetColor (new Vector3 (1, 1, 1));
+		SetColor (Vector3.one);
 		wasReset = true;
 		networkView.RPC ("ResetColor", RPCMode.AllBuffered);
 	}
 	[RPC]
 	public void ResetColor () {
-		SetColor (new Vector3 (1, 1, 1));
+		SetColor (Vector3.one);
 		wasReset = true;
+	}
+
+	public void Blue () {
+		SetColor (Vector3.forward);
+	}
+
+	public void Green () {
+		SetColor (Vector3.up);
+	}
+
+	public void Red () {
+		SetColor (Vector3.right);
 	}
 }
