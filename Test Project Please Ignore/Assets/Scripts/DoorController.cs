@@ -18,18 +18,24 @@ public class DoorController : MonoBehaviour {
 
 	[RPC]
 	public void SetState (bool newClosedEh) {
+		closedEh = newClosedEh;
 		renderer.enabled = closedEh;
 		collider.enabled = closedEh;
-		closedEh = newClosedEh;
 	}
 
 	public void ToggleState () {
-		SetState (!closedEh);
-		networkView.RPC ("SetState", RPCMode.AllBuffered, closedEh); // note that the previous SetState will have toggled closedEh
+		bool wasClosedEh = closedEh;
+		SetState (!wasClosedEh);
+		networkView.RPC ("SetState", RPCMode.AllBuffered, !wasClosedEh); // note that the previous SetState will have toggled closedEh but not wasClosedEh
 	}
 
-	public void ToggleStateForSeconds (float stateStayLength) {
-		ToggleState ();
+	public void CloseForSeconds (float stateStayLength) {
+		SetState (true);
+		StartCoroutine (WaitThenToggle (stateStayLength));
+	}
+
+	public void OpenForSeconds (float stateStayLength) {
+		SetState (false);
 		StartCoroutine (WaitThenToggle (stateStayLength));
 	}
 	

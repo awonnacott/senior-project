@@ -37,6 +37,7 @@ public class PlayerMovement : MonoBehaviour {
 
 	public void RPCDestroy () {
 		networkView.RPC ("Destroy", RPCMode.AllBuffered);
+		Destroy ();
 	}
 
 	[RPC]
@@ -171,4 +172,22 @@ public class PlayerMovement : MonoBehaviour {
 			NetworkView.Find(callerID).RPC (callback, info.sender);
 	}
 
+	[RPC]
+	public void Die () {
+		if (owner == Network.player) {
+			Debug.Log ("Died");
+			Network.Disconnect ();
+			if (Network.isServer)
+				MasterServer.UnregisterHost ();
+		} else if (Network.isServer) {
+			networkView.RPC ("Die", owner);
+			Debug.Log ("Killing " + owner);
+		}
+	}
+	void OnTriggerEnter (Collider other) {
+		EnemyController enemy = other.GetComponent <EnemyController> ();
+		if (Network.isServer && enemy != null && !other.isTrigger) {
+			enemy.Die();
+		}
+	}
 }

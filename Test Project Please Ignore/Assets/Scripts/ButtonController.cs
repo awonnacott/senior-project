@@ -4,12 +4,10 @@ using System.Collections;
 
 public class ButtonController : MonoBehaviour {
 	new NetworkView networkView;
-	new Renderer renderer;
 	public UnityEvent actions;
 
 	void Start () {
 		networkView = GetComponent <NetworkView> ();
-		renderer = GetComponent <Renderer> ();
 	}
 	
 	void OnTriggerEnter (Collider other) {

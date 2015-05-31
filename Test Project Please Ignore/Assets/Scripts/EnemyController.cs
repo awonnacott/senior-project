@@ -79,4 +79,23 @@ public class EnemyController : MonoBehaviour {
 	void ClientReceivePosition (Vector3 position) {
 		nav.Warp (position);
 	}
+
+	void OnTriggerEnter (Collider other) {
+		PlayerMovement player = other.GetComponent <PlayerMovement> ();
+		if (Network.isServer && player != null && !other.isTrigger) {
+			player.Die();
+		}
+	}
+	[RPC]
+	public void Die () {
+		if (Network.isServer) {
+			networkView.RPC ("Destroy", RPCMode.AllBuffered);
+			Destroy (gameObject);
+		}
+	}
+	
+	[RPC]
+	void Destroy () {
+		Destroy (gameObject);
+	}
 }
