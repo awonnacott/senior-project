@@ -174,16 +174,17 @@ public class PlayerMovement : MonoBehaviour {
 
 	[RPC]
 	public void Die () {
-		if (owner == Network.player) {
+		if (Network.isServer && owner == Network.player) {
+			transform.position = new Vector3 (UnityEngine.Random.value * 10 - 5, 0, UnityEngine.Random.value * 10 - 5);
+		} else if (owner == Network.player) {
 			Debug.Log ("Died");
 			Network.Disconnect ();
-			if (Network.isServer)
-				MasterServer.UnregisterHost ();
 		} else if (Network.isServer) {
 			networkView.RPC ("Die", owner);
 			Debug.Log ("Killing " + owner);
 		}
 	}
+		
 	void OnTriggerEnter (Collider other) {
 		EnemyController enemy = other.GetComponent <EnemyController> ();
 		if (Network.isServer && enemy != null && !other.isTrigger) {

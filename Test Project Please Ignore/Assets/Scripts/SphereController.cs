@@ -5,30 +5,47 @@ public class SphereController : MonoBehaviour {
 	new Renderer renderer;
 	new NetworkView networkView;
 	bool wasReset = false;
+	Vector3 defaultColor = Vector3.one;
 	void Start () {
 		renderer = GetComponent <Renderer> ();
 		networkView = GetComponent <NetworkView> ();
 	}
 
-	void OnTriggerEnter () {
-		SetColor (Vector3.right);
+	void OnTriggerEnter (Collider other) {
+		try {
+			Renderer otherRenderer = other.GetComponent <Renderer> ();
+			Color otherColor = otherRenderer.material.color;
+			SetColor(otherColor);
+		} catch (MissingComponentException) {
+			SetColor (Vector3.zero);
+		}
 	}
 
-	void OnTriggerStay () {
+	void OnTriggerStay (Collider other) {
 		if (wasReset) {
-			SetColor (Vector3.right);
+			try {
+				Renderer otherRenderer = other.GetComponent <Renderer> ();
+				Color otherColor = otherRenderer.material.color;
+				SetColor(otherColor);
+			} catch (MissingComponentException) {
+				SetColor (Vector3.zero);
+			}
 			wasReset = false;
 		}
 	}
 
 	void OnTriggerExit () {
-		SetColor (Vector3.one);
+		SetColor (defaultColor);
 		wasReset = true;
 	}
 
 	[RPC]
 	public void SetColor (Vector3 newColorVector) {
 		renderer.material.color = new Color(newColorVector.x, newColorVector.y, newColorVector.z);
+	}
+
+	public void SetColor (Color newColor) {
+		renderer.material.color = newColor;
 	}
 
 	void OnServerInitialized() {
@@ -45,25 +62,31 @@ public class SphereController : MonoBehaviour {
 	}
 
 	void AllResetColor () {
-		SetColor (Vector3.one);
+		SetColor (defaultColor);
 		wasReset = true;
 		networkView.RPC ("ResetColor", RPCMode.AllBuffered);
 	}
 	[RPC]
 	public void ResetColor () {
-		SetColor (Vector3.one);
+		SetColor (defaultColor);
 		wasReset = true;
 	}
 
 	public void Blue () {
-		SetColor (Vector3.forward);
+		defaultColor = Vector3.forward;
+		ResetColor ();
+		wasReset = true;
 	}
 
 	public void Green () {
-		SetColor (Vector3.up);
+		defaultColor = Vector3.up;
+		ResetColor ();
+		wasReset = true;
 	}
 
 	public void Red () {
-		SetColor (Vector3.right);
+		defaultColor = Vector3.right;
+		ResetColor ();
+		wasReset = true;
 	}
 }

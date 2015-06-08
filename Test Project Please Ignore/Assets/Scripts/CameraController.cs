@@ -60,7 +60,7 @@ public class CameraController : MonoBehaviour {
 
 		RaycastHit hit;
 		if (Physics.Raycast (transform.parent.position, transform.position - transform.parent.position, out hit, desiredDistance))
-			transform.localPosition = transform.localPosition.normalized * Mathf.Clamp (hit.distance, 2, desiredDistance);
+			transform.localPosition = transform.localPosition.normalized * Mathf.Clamp (hit.distance, 1.22f, desiredDistance);
 
 
 
